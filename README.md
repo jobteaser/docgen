@@ -30,7 +30,7 @@ For now, these are the rules:
   - empty: the row is a content row:
     - the text in column 1 is used as a level-4 title (`<h4>Title</h4>`)
     - the text in column 2 is added as text parsed as follows:
-		- Text encased in `*` is bold (`<strong>Text</strong>`)
+		- Text encased in `**` is bold (`<strong>Text</strong>`)
 		- Line starting with `-` is treated as a list element
 		- Line containing ` | ` is treated as a table element. The first line of a table is necessarily headings.
 
