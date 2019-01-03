@@ -153,9 +153,9 @@ func processRow(idx int, row []interface{}) {
 
 func title(level int, rowValue interface{}) string {
 	r := "\n"
-	r += fmt.Sprintf("<h%d>", level-1)
+	r += fmt.Sprintf("<h%d>", level)
 	r += rowValue.(string)
-	r += fmt.Sprintf("</h%d>\n", level-1)
+	r += fmt.Sprintf("</h%d>\n", level)
 	return r
 }
 
@@ -202,7 +202,7 @@ func text(rowValue interface{}) string {
 		} else {
 			if strings.HasPrefix(lines[i], "#") {
 				titleLevel := strings.LastIndex(lines[i], "#")
-				r += title(titleLevel+2, strings.TrimLeft(lines[i], "# "))
+				r += title(titleLevel+1, strings.TrimLeft(lines[i], "# "))
 			} else {
 				r += fmt.Sprintf("\n<p>%s</p>\n", lines[i])
 			}
