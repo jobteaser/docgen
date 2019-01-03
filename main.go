@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -16,6 +17,8 @@ import (
 )
 
 var spreadsheetID = os.Getenv("SPREADSHEET_ID")
+var inList = false
+var inTable = false
 
 // Retrieve a token, saves the token, then returns the generated client.
 func getClient(config *oauth2.Config) *http.Client {
@@ -96,9 +99,21 @@ func main() {
 	if len(resp.Values) == 0 {
 		fmt.Println("No data found.")
 	} else {
+		printFile("header.html")
 		for i, row := range resp.Values {
 			processRow(i, row)
 		}
+		printFile("footer.html")
+	}
+}
+
+func printFile(file string) {
+	b, err := ioutil.ReadFile(file)
+	if err != nil {
+		fmt.Println("Could not read %s file: %s", file, err)
+	} else {
+		data := string(b)
+		fmt.Println(data)
 	}
 }
 
@@ -125,21 +140,75 @@ func processRow(idx int, row []interface{}) {
 	if isEqual(row[2], "N/A") {
 		return
 	}
+	if inList {
+		fmt.Println("</ul>")
+		inList = false
+	} else if inTable {
+		fmt.Println("</table>")
+		inTable = false
+	}
 	fmt.Println(title(4, row[1]))
 	fmt.Println(text(row[2]))
 }
 
 func title(level int, rowValue interface{}) string {
 	r := "\n"
-	for i := 0; i < level; i++ {
-		r += "#"
-	}
-	r += " " + rowValue.(string) + "\n"
+	r += fmt.Sprintf("<h%d>", level-1)
+	r += rowValue.(string)
+	r += fmt.Sprintf("</h%d>\n", level-1)
 	return r
 }
 
+func tableLine(header bool, line []string) string {
+		tags := [2]string{}
+		if header {
+			tags = [2]string{"<th>", "</th>"}
+		} else {
+			tags = [2]string{"<td>", "</td>"}
+		}
+		r := "<tr>\n"
+		for i := range line {
+			r += fmt.Sprintf("%s%s%s\n", tags[0], line[i], tags[1])
+		}
+		r += "</tr>\n"
+		return r
+}
+
 func text(rowValue interface{}) string {
-	return "\n" + rowValue.(string) + "\n"
+	r := ""
+	row := rowValue.(string)
+	lines := strings.Split(row, "\n")
+	for i := range lines {
+		if strings.Contains(lines[i], "**") {
+				a := strings.Split(lines[i], "**")
+				r += text(a[0])
+				r += fmt.Sprintf("<strong>%s</strong>\n", a[1])
+				r += text(strings.Join(a[2:], ""))
+		} else if strings.Contains(lines[i], " | ") {
+			l := strings.Split(lines[i], " | ")
+			if !inTable {
+				r += "<table>\n"
+				r += tableLine(true, l)
+				inTable = true
+			} else {
+				r += tableLine(false, l)
+			}
+		} else if strings.HasPrefix(lines[i], "-") {
+			if !inList {
+				r += fmt.Sprintf("<ul>\n")
+				inList = true
+			}
+			r += fmt.Sprintf("<li>%s</li>\n", strings.TrimLeft(lines[i], "- "))
+		} else {
+			if strings.HasPrefix(lines[i], "#") {
+				titleLevel := strings.LastIndex(lines[i], "#")
+				r += title(titleLevel+2, strings.TrimLeft(lines[i], "# "))
+			} else {
+				r += fmt.Sprintf("\n<p>%s</p>\n", lines[i])
+			}
+		}
+	}
+	return r
 }
 
 func isEmpty(rowValue interface{}) bool {
