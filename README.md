@@ -26,13 +26,14 @@ For now, these are the rules:
   - `1`, `2` or `3`: 
     - the row is a `N`-level title (`<h1>Title</h1>` for 1, `<h2>Title</h2>` for 2...)
     - the text in column 1 is used as the title
-    - the text in column 2 is ignored
-  - empty: the row is a content row:
-    - the text in column 1 is used as a level-4 title (`<h4>Title</h4>`)
+- Column 1 is the title
+    - if column 0 is empty, the title level used is 4 (`<h4>Title</h4>`)
+- Colmun 2 is the text
     - the text in column 2 is added as text parsed as follows:
-		- Text encased in `**` is bold (`<strong>Text</strong>`)
-		- Line starting with `-` is treated as a list element
-		- Line containing ` | ` is treated as a table element. The first line of a table is necessarily headings.
+		- text encased in `**` is bold (`<strong>Text</strong>`)
+		- line starting with `-` is treated as a list element (`<li>`)
+		- line containing ` | ` is treated as a table element. The first line of a table is necessarily headings.
+		- as in markdown, a line starting with `#` is considered a title. The number of `#` determines the title level.
 
 Current limitations:
 

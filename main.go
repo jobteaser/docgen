@@ -118,34 +118,39 @@ func printFile(file string) {
 }
 
 func processRow(idx int, row []interface{}) {
-	if isEqual(row[0], "x") {
-		return
-	}
-	if !isEmpty(row[0]) {
-		titleLevel, err := strconv.Atoi(row[0].(string))
-		if err != nil {
-			fmt.Printf("-- unexpected title level value at row %d, column 0 (found `%s`)\n", idx, row[0])
-		}
-		fmt.Println(title(titleLevel, row[1]))
-		return
-	}
-	if isEmpty(row[1]) {
-		fmt.Println(text(row[2]))
-		return
-	}
-	if len(row) < 3 {
-		fmt.Printf("-- unexpected missing value at row %d, column 2\n", idx)
-		return
-	}
-	if isEqual(row[2], "N/A") {
-		return
-	}
 	if inList {
 		fmt.Println("</ul>")
 		inList = false
 	} else if inTable {
 		fmt.Println("</table>")
 		inTable = false
+	}
+
+	if isEqual(row[0], "x") {
+		return
+	}
+
+	if !isEmpty(row[0]) {
+		titleLevel, err := strconv.Atoi(row[0].(string))
+		if err != nil {
+			log.Printf("-- unexpected title level value at row %d, column 0 (found `%s`)\n", idx, row[0])
+		}
+		fmt.Println(title(titleLevel, row[1]))
+		if len(row) >= 3 {
+			fmt.Println(text(row[2]))
+		}
+		return
+	}
+	if len(row) < 3 {
+		log.Printf("-- unexpected missing value at row %d, column 2\n", idx)
+		return
+	}
+	if isEmpty(row[1]) {
+		fmt.Println(text(row[2]))
+		return
+	}
+	if isEqual(row[2], "N/A") {
+		return
 	}
 	fmt.Println(title(4, row[1]))
 	fmt.Println(text(row[2]))
@@ -202,7 +207,7 @@ func text(rowValue interface{}) string {
 		} else {
 			if strings.HasPrefix(lines[i], "#") {
 				titleLevel := strings.LastIndex(lines[i], "#")
-				r += title(titleLevel+1, strings.TrimLeft(lines[i], "# "))
+				r += title(titleLevel, strings.TrimLeft(lines[i], "# "))
 			} else {
 				r += fmt.Sprintf("\n<p>%s</p>\n", lines[i])
 			}
