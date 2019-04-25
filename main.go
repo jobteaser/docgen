@@ -19,6 +19,7 @@ import (
 var spreadsheetID = os.Getenv("SPREADSHEET_ID")
 var inList = false
 var inTable = false
+var first = true
 
 // Retrieve a token, saves the token, then returns the generated client.
 func getClient(config *oauth2.Config) *http.Client {
@@ -158,6 +159,14 @@ func processRow(idx int, row []interface{}) {
 
 func title(level int, rowValue interface{}) string {
 	r := "\n"
+	if (level == 1) {
+		if (first == true) {
+			first = false
+		} else {
+			r += fmt.Sprintf("</div>")
+		}
+		r += fmt.Sprintf(`<div "jt-Wrap jt-Wrap--stylized ">`) /* Here is the error I can't fix! */
+	}
 	r += fmt.Sprintf("<h%d>", level)
 	r += rowValue.(string)
 	r += fmt.Sprintf("</h%d>\n", level)
