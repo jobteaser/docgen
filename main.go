@@ -159,13 +159,13 @@ func processRow(idx int, row []interface{}) {
 
 func title(level int, rowValue interface{}) string {
 	r := "\n"
-	if (level == 1) {
-		if (first == true) {
+	if level == 1 {
+		if first == true {
 			first = false
 		} else {
 			r += fmt.Sprintf("</div>")
 		}
-		r += fmt.Sprintf(`<div "jt-Wrap jt-Wrap--stylized ">`) /* Here is the error I can't fix! */
+		r += fmt.Sprintf(`<div class="jt-Wrap--widthSpacer jt-Wrap--stylized">`) /* Here is the error I can't fix! */
 	}
 	r += fmt.Sprintf("<h%d>", level)
 	r += rowValue.(string)
