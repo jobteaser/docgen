@@ -100,11 +100,9 @@ func main() {
 	if len(resp.Values) == 0 {
 		fmt.Println("No data found.")
 	} else {
-		printFile("header.html")
 		for i, row := range resp.Values {
 			processRow(i, row)
 		}
-		printFile("footer.html")
 	}
 }
 
@@ -126,7 +124,6 @@ func processRow(idx int, row []interface{}) {
 		fmt.Println("</table>")
 		inTable = false
 	}
-
 	if isEqual(row[0], "x") {
 		return
 	}
@@ -163,9 +160,9 @@ func title(level int, rowValue interface{}) string {
 		if first == true {
 			first = false
 		} else {
-			r += fmt.Sprintf("</div>")
+			r += fmt.Sprintf("</div><br />")
 		}
-		r += fmt.Sprintf(`<div class="jt-Wrap--widthSpacer jt-Wrap--stylized">`) /* Here is the error I can't fix! */
+		r += fmt.Sprintf(`<div class="jt-Wrap--widthSpacer jt-Wrap--stylized">`)
 	}
 	r += fmt.Sprintf("<h%d>", level)
 	r += rowValue.(string)
@@ -193,32 +190,47 @@ func text(rowValue interface{}) string {
 	row := rowValue.(string)
 	lines := strings.Split(row, "\n")
 	for i := range lines {
-		if strings.Contains(lines[i], "**") {
+		if lines[i] != "" {
+			if strings.Contains(lines[i], "**") {
+				s := ""
 				a := strings.Split(lines[i], "**")
-				r += text(a[0])
-				r += fmt.Sprintf("<strong>%s</strong>\n", a[1])
-				r += text(strings.Join(a[2:], ""))
-		} else if strings.Contains(lines[i], " | ") {
-			l := strings.Split(lines[i], " | ")
-			if !inTable {
-				r += "<table>\n"
-				r += tableLine(true, l)
-				inTable = true
-			} else {
-				r += tableLine(false, l)
+				s += text(a[0])
+				s += fmt.Sprintf("<strong>%s</strong>\n", a[1])
+				s += text(strings.Join(a[2:], ""))
+				lines[i] = s
 			}
-		} else if strings.HasPrefix(lines[i], "-") {
-			if !inList {
-				r += fmt.Sprintf("<ul>\n")
-				inList = true
+			if strings.Contains(lines[i], " | ") {
+				s := ""
+				l := strings.Split(lines[i], " | ")
+				if !inTable {
+					s += "<table>\n"
+					s += tableLine(true, l)
+					inTable = true
+				} else {
+					s += tableLine(false, l)
+				}
+				lines[i] = s
+			} else if inTable {
+				r += fmt.Sprintf("</table>\n")
+				inTable = false
 			}
-			r += fmt.Sprintf("<li>%s</li>\n", strings.TrimLeft(lines[i], "- "))
-		} else {
-			if strings.HasPrefix(lines[i], "#") {
-				titleLevel := strings.LastIndex(lines[i], "#")
-				r += title(titleLevel, strings.TrimLeft(lines[i], "# "))
+			if strings.HasPrefix(lines[i], "-") {
+				if !inList {
+					r += fmt.Sprintf("<ul>\n")
+					inList = true
+				}
+				r += fmt.Sprintf("<li>%s</li>\n", strings.TrimLeft(lines[i], "- "))
 			} else {
-				r += fmt.Sprintf("\n<p>%s</p>\n", lines[i])
+				if inList {
+					r += fmt.Sprintf("</ul>\n")
+					inList = false
+				}
+				if strings.HasPrefix(lines[i], "#") {
+					titleLevel := strings.LastIndex(lines[i], "#")
+					r += title(titleLevel, strings.TrimLeft(lines[i], "# "))
+				} else {
+					r += fmt.Sprintf("\n<p>%s</p>\n", lines[i])
+				}
 			}
 		}
 	}
